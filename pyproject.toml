@@ -1,0 +1,20 @@
+[project]
+name = "crawler-service"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.121.1",
+    "gunicorn>=23.0.0",
+    "motor>=3.7.1",
+    "pymongo>=4.10.1",
+    "uvicorn>=0.34.0",
+    "pydantic>=2.10.5",
+    "pydantic-settings>=2.7.1",
+    "python-dotenv>=1.0.1",
+    "requests>=2.32.3",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.28.1",
+]
