@@ -1,10 +1,11 @@
+import imaplib
 import poplib
 import email
 from email.message import Message
 from dataclasses import dataclass
 from email.header import decode_header
 from email.utils import parseaddr, parsedate_to_datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 import logging
 
 from src.core.base_crawler import BaseCrawler
@@ -54,7 +55,9 @@ class MailCrawler(BaseCrawler):
         self._collection = collection
         self.limit = limit
         self.use_ssl = use_ssl
-        self.conn: Optional[poplib.POP3_SSL] = None
+        self.is_imap = "imap" in server.lower()
+        self.conn: Optional[Union[imaplib.IMAP4_SSL, poplib.POP3_SSL]] = None
+        self.total_messages = 0
 
     @property
     def database_name(self) -> str:
@@ -67,26 +70,39 @@ class MailCrawler(BaseCrawler):
     def get_document_id(self, item: Dict[str, Any]) -> str:
         return item["_id"]
 
+    def _connect_imap(self):
+        cls = imaplib.IMAP4_SSL if self.use_ssl else imaplib.IMAP4
+        self.conn = cls(self.server, self.port)
+        self.conn.login(self.username, self.password)
+        _, data = self.conn.select("INBOX")
+        self.total_messages = int(data[0])
+
+    def _connect_pop(self):
+        cls = poplib.POP3_SSL if self.use_ssl else poplib.POP3
+        self.conn = cls(self.server, self.port)
+        self.conn.user(self.username)
+        self.conn.pass_(self.password)
+        self.total_messages, _ = self.conn.stat()
+
     def connect(self) -> bool:
         try:
-            self.conn = (
-                poplib.POP3_SSL(self.server, self.port)
-                if self.use_ssl
-                else poplib.POP3(self.server, self.port)
-            )
-            self.conn.user(self.username)
-            self.conn.pass_(self.password)
+            self._connect_imap() if self.is_imap else self._connect_pop()
             return True
         except Exception as e:
             logger.error(f"Connect failed: {e}")
             return False
 
     def disconnect(self):
-        if self.conn:
-            try:
+        if not self.conn:
+            return
+        try:
+            if self.is_imap:
+                self.conn.close()
+                self.conn.logout()
+            else:
                 self.conn.quit()
-            except Exception as e:
-                logger.error(f"Disconnect failed: {e}")
+        except Exception as e:
+            logger.error(f"Disconnect failed: {e}")
 
     def decode_bytes(self, content: bytes, charset: Optional[str]) -> str:
         for encoding in [charset, "utf-8", "gbk", "gb2312"]:
@@ -157,26 +173,33 @@ class MailCrawler(BaseCrawler):
             logger.error(f"Parse failed: {e}")
             return None
 
-    def fetch_message(self, index: int) -> Optional[Dict[str, Any]]:
+    def fetch_message(self, msg_id: bytes) -> Optional[Dict[str, Any]]:
         try:
-            _, lines, _ = self.conn.retr(index)
-            email_obj = self.parse_message(b"\r\n".join(lines))
+            if self.is_imap:
+                _, data = self.conn.fetch(msg_id, "(RFC822)")
+                email_obj = self.parse_message(data[0][1])
+            else:
+                _, lines, _ = self.conn.retr(int(msg_id))
+                email_obj = self.parse_message(b"\r\n".join(lines))
             return email_obj.to_dict() if email_obj else None
         except Exception as e:
-            logger.error(f"Fetch {index} failed: {e}")
+            logger.error(f"Fetch {msg_id} failed: {e}")
             return None
 
-    def get_range(self, total: int) -> range:
-        start = 1 if self.limit is None else max(1, total - self.limit + 1)
-        return range(total, start - 1, -1)
+    def get_message_ids(self) -> List[bytes]:
+        if self.total_messages == 0:
+            return []
+        start = max(1, self.total_messages - self.limit + 1) if self.limit else 1
+        end = self.total_messages
+        return [str(i).encode() for i in range(end, start - 1, -1)]
 
     def crawl(self, **kwargs) -> List[Dict[str, Any]]:
         if not self.connect():
             return []
         try:
-            total, _ = self.conn.stat()
             return [
-                msg for i in self.get_range(total) if (msg := self.fetch_message(i))
+                msg for msg_id in self.get_message_ids()
+                if (msg := self.fetch_message(msg_id))
             ]
         finally:
             self.disconnect()
