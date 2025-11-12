@@ -33,8 +33,6 @@ async def test_api_mail_post_imap(client):
     assert client.status_code == 200
 
 
-
-
 @pytest.mark.asyncio
 async def test_api_mail_post_imap_2(client):
     test_config = {

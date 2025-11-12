@@ -30,7 +30,9 @@ class BaseCrawler(ABC):
 
     async def save_items(self, items: List[Dict[str, Any]], mongo: MongoDBClient):
         for item in items:
-            item["created_at"] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+            item["created_at"] = (
+                datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+            )
             doc_id = self.get_document_id(item)
             await mongo.upsert(self.collection_name, {"_id": doc_id}, item)
 
