@@ -1,0 +1,12 @@
+x-app-environment: &app-env
+  MONGO_URI: mongodb://weijiangwu:wwj110120@172.185.154.28:27017/?authSource=admin
+
+services:
+  crawler-service:
+    image: weijiangwu/crawler-service:latest
+    container_name: crawler-service
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8010
+    ports:
+      - "8010:8010"
+    environment: *app-env
+    restart: unless-stopped
