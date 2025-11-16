@@ -38,12 +38,6 @@ async def crawl_mail(req: MailCrawlRequest, tasks: BackgroundTasks):
 @router.post("/rss/crawl", response_model=CrawlResponse, tags=["rss"])
 async def crawl_rss(req: RssCrawlRequest, tasks: BackgroundTasks):
     settings = get_settings()
-    crawler = RssCrawler(
-        rss_url=req.rss_url,
-        database=req.database,
-        collection=req.collection,
-        limit=req.limit,
-        fetch_full_content=req.fetch_full_content,
-    )
+    crawler = RssCrawler(urls=req.urls, database=req.database, collection=req.collection)
     tasks.add_task(_execute_crawler, crawler, settings.mongo_uri, req.database)
     return CrawlResponse(success=True, message="Task accepted")

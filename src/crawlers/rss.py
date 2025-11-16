@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Any
+from typing import Any
 
 import feedparser
 
@@ -38,38 +38,26 @@ class FeedParser:
 
 
 class RssCrawler(Crawler):
-    def __init__(
-        self,
-        rss_url: str,
-        database: str,
-        collection: str,
-        limit: Optional[int] = None,
-        fetch_full_content: bool = True,
-    ):
+    def __init__(self, urls: list[str], database: str, collection: str):
         super().__init__(database, collection)
-        self._rss_url = rss_url
-        self._limit = limit
-        self._fetch_full = fetch_full_content
+        self._urls = urls
         self._http = HttpClient(user_agent="Mozilla/5.0 (compatible; RSS Reader/1.0)")
         self._parser = FeedParser()
 
     def crawl(self) -> list[dict]:
         try:
-            content = self._http.get(self._rss_url)
-            articles = self._parser.parse(content, self._rss_url)
-            items = [article.to_dict() for article in articles]
-            if self._fetch_full:
-                self._enrich(items)
-            return items[: self._limit] if self._limit else items
-        except Exception:
-            return []
+            return [
+                article
+                for url in self._urls
+                for article in self._crawl_feed(url)
+            ]
         finally:
             self._http.close()
 
-    def _enrich(self, items: list[dict]) -> None:
-        for item in items:
-            if link := item.get("link"):
-                try:
-                    item["content"] = self._http.get(link)
-                except Exception:
-                    pass
+    def _crawl_feed(self, url: str) -> list[dict]:
+        try:
+            content = self._http.get(url)
+            articles = self._parser.parse(content, url)
+            return [article.to_dict() for article in articles]
+        except Exception:
+            return []

@@ -15,11 +15,9 @@ class MailCrawlRequest(BaseModel):
 
 
 class RssCrawlRequest(BaseModel):
-    rss_url: str = Field(..., description="RSS feed URL")
+    urls: list[str] = Field(..., description="RSS feed URLs")
     database: str = Field(..., description="Database name")
     collection: str = Field(..., description="Collection name")
-    limit: Optional[int] = Field(None, description="Limit number of articles")
-    fetch_full_content: bool = Field(True, description="Fetch full article content")
 
 
 class CrawlResponse(BaseModel):

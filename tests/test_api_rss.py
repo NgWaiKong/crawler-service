@@ -6,11 +6,9 @@ async def test_rss_crawl_endpoint(client):
     response = client.post(
         "/api/v1/rss/crawl",
         json={
-            "rss_url": "https://www.qbitai.com/feed",
+            "urls": ["https://www.qbitai.com/feed", "https://wechat2rss.bestblogs.dev/feed/2d790e38f8af54c5af77fa5fed687a7c66d34c22.xml"],
             "database": "test_db",
             "collection": "test_rss",
-            "limit": 2,
-            "fetch_full_content": True,
         },
     )
     assert response.status_code == 200

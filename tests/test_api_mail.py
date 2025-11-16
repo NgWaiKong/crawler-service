@@ -8,8 +8,8 @@ async def test_api_mail_post_pop(client):
         "port": 995,
         "username": "17306161024@163.com",
         "password": "FHyVNNUpZjdGABGB",
-        "database": "test_crawler",
-        "collection": "test_emails",
+        "database": "test_db",
+        "collection": "test_crawler_emails",
         "limit": 2,
         "use_ssl": True,
     }
@@ -24,8 +24,8 @@ async def test_api_mail_post_imap(client):
         "port": 993,
         "username": "zhoum@primecapital.com.cn",
         "password": "Gsfsj2025!",
-        "database": "finance_data",
-        "collection": "mail",
+        "database": "test_db",
+        "collection": "test_mail",
         "limit": 2,
         "use_ssl": True,
     }
@@ -40,8 +40,8 @@ async def test_api_mail_post_imap_2(client):
         "port": 993,
         "username": "stackinfo@consensusai.ai",
         "password": "JdfRMyxAjGg8cUMa",
-        "database": "finance_data",
-        "collection": "mail_2",
+        "database": "test_db",
+        "collection": "test_mail_2",
         "limit": 2,
         "use_ssl": True,
     }
