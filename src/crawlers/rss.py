@@ -46,11 +46,12 @@ class RssCrawler(Crawler):
 
     def crawl(self) -> list[dict]:
         try:
-            return [
+            articles = [
                 article
                 for url in self._urls
                 for article in self._crawl_feed(url)
             ]
+            return articles
         finally:
             self._http.close()
 
@@ -58,6 +59,8 @@ class RssCrawler(Crawler):
         try:
             content = self._http.get(url)
             articles = self._parser.parse(content, url)
+            self._logger.info(f"Crawled {len(articles)} articles from {url}")
             return [article.to_dict() for article in articles]
-        except Exception:
+        except Exception as e:
+            self._logger.warning(f"Failed to crawl {url}: {type(e).__name__}")
             return []
