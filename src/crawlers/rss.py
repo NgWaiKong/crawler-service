@@ -73,3 +73,4 @@ class RssCrawler(Crawler):
                     item["content"] = self._http.get(link)
                 except Exception:
                     pass
+
