@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_rss_crawl_endpoint(client):
     response = client.post(
-        "/rss/crawl",
+        "/api/v1/rss/crawl",
         json={
             "rss_url": "https://www.qbitai.com/feed",
             "database": "test_db",

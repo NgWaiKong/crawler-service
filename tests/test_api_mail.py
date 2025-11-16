@@ -13,7 +13,7 @@ async def test_api_mail_post_pop(client):
         "limit": 2,
         "use_ssl": True,
     }
-    client = client.post("/mail/crawl", json=test_config)
+    client = client.post("/api/v1/mail/crawl", json=test_config)
     assert client.status_code == 200
 
 
@@ -29,7 +29,7 @@ async def test_api_mail_post_imap(client):
         "limit": 2,
         "use_ssl": True,
     }
-    client = client.post("/mail/crawl", json=test_config)
+    client = client.post("/api/v1/mail/crawl", json=test_config)
     assert client.status_code == 200
 
 
@@ -45,5 +45,5 @@ async def test_api_mail_post_imap_2(client):
         "limit": 2,
         "use_ssl": True,
     }
-    client = client.post("/mail/crawl", json=test_config)
+    client = client.post("/api/v1/mail/crawl", json=test_config)
     assert client.status_code == 200

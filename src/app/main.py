@@ -41,7 +41,7 @@ def _add_middleware(app: FastAPI) -> None:
 
 
 def _add_routes(app: FastAPI) -> None:
-    app.include_router(router)
+    app.include_router(router, prefix="/api/v1")
 
     @app.get("/")
     async def root():
