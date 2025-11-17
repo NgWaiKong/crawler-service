@@ -20,6 +20,15 @@ class RssCrawlRequest(BaseModel):
     collection: str = Field(..., description="Collection name")
 
 
+class MongoCrawlRequest(BaseModel):
+    source_uri: str = Field(..., description="Source MongoDB URI")
+    source_database: str = Field(..., description="Source database name")
+    source_collection: str = Field(..., description="Source collection name")
+    target_database: str = Field(..., description="Target database name")
+    target_collection: str = Field(..., description="Target collection name")
+    limit: Optional[int] = Field(None, description="Limit number of documents")
+
+
 class CrawlResponse(BaseModel):
     success: bool
     message: str

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, BackgroundTasks
 
-from src.api.schemas import MailCrawlRequest, RssCrawlRequest, CrawlResponse
+from src.api.schemas import MailCrawlRequest, MongoCrawlRequest, RssCrawlRequest, CrawlResponse
 from src.config.settings import get_settings
 from src.crawlers.mail import MailCrawler
+from src.crawlers.mongo import MongoCrawler
 from src.crawlers.rss import RssCrawler
 from src.infrastructure.database import Database
 from src.infrastructure.logger import setup_logger
@@ -49,4 +50,20 @@ async def crawl_rss(req: RssCrawlRequest, tasks: BackgroundTasks):
     settings = get_settings()
     crawler = RssCrawler(urls=req.urls, database=req.database, collection=req.collection)
     tasks.add_task(_execute_crawler, crawler, settings.mongo_uri, req.database)
+    return CrawlResponse(success=True, message="Task accepted")
+
+
+@router.post("/mongo/crawl", response_model=CrawlResponse, tags=["mongo"])
+async def crawl_mongo(req: MongoCrawlRequest, tasks: BackgroundTasks):
+    logger.info(f"Mongo crawl: {req.source_database}/{req.source_collection} -> {req.target_database}/{req.target_collection}")
+    settings = get_settings()
+    crawler = MongoCrawler(
+        source_uri=req.source_uri,
+        source_database=req.source_database,
+        source_collection=req.source_collection,
+        target_database=req.target_database,
+        target_collection=req.target_collection,
+        limit=req.limit,
+    )
+    tasks.add_task(_execute_crawler, crawler, settings.mongo_uri, req.target_database)
     return CrawlResponse(success=True, message="Task accepted")
