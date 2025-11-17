@@ -13,7 +13,7 @@ class MongoConnection:
         self._limit = limit
 
     def fetch_all(self) -> list[dict[str, Any]]:
-        cursor = self._collection.find({})
+        cursor = self._collection.find({}).sort("_id", -1)
         if self._limit:
             cursor = cursor.limit(self._limit)
         return list(cursor)
